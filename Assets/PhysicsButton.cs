@@ -1,58 +1,50 @@
 using UnityEngine;
-using UnityEngine.Events;
 
-public class PhysicsButton : MonoBehaviour
+public class ChangeAccentButtonColor : MonoBehaviour
 {
-    public float threshold = 0.1f;
-    public float deadZone = 0.025f;
+    public Renderer targetRenderer;
+    public Color pressedColor = Color.green;
+    public Color releasedColor = Color.red;
 
-    private bool isPressed;
-    private Vector3 startPos;
-    private ConfigurableJoint joint;
-    public UnityEvent onPressed, onReleased;
-    
+    private Material accentMaterial;
+
     void Start()
     {
-        startPos =  transform.localPosition;
-        joint = GetComponent<ConfigurableJoint>();
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        if (!isPressed && GetValue() + threshold>= 1)
-        { 
-            Pressed();
-        }
-        if (!isPressed && GetValue() - threshold <= 0)
+        if (targetRenderer == null)
         {
-            Released();
+            Debug.LogError("ChangeAccentButtonColor: No Renderer assigned!");
+            return;
         }
-    }
 
-    private float GetValue()
-    {
-        var value = Vector3.Distance(startPos, transform.localPosition) / joint.linearLimit.limit;
-
-        if(Math.Abs(value) < deadZone)
+        // Find the material named "AccentButton" in the renderer's materials
+        foreach (var mat in targetRenderer.materials)
         {
-            value = 0;
+            if (mat.name.StartsWith("AccentButton"))
+            {
+                accentMaterial = mat;
+                break;
+            }
         }
 
-        return Mathf.Clamp(value, -1f, 1f);
+        if (accentMaterial == null)
+        {
+            Debug.LogError("ChangeAccentButtonColor: No material named 'AccentButton' found!");
+            return;
+        }
+
+        // Set initial color
+        accentMaterial.color = releasedColor;
     }
 
-     private void Pressed()
+    public void SetPressedColor()
     {
-        isPressed = true;
-        onPressed.Invoke();
-        Debug.Log("Pressed");
+        if (accentMaterial != null)
+            accentMaterial.color = pressedColor;
     }
 
-    private void Released()
+    public void SetReleasedColor()
     {
-        isPressed = false;
-        onReleased.Invoke();
-        Debug.Log("rELEASED ");
+        if (accentMaterial != null)
+            accentMaterial.color = releasedColor;
     }
 }
